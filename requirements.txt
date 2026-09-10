@@ -1,0 +1,23 @@
+# Backend & API
+fastapi==0.110.0
+uvicorn==0.27.1
+python-multipart==0.0.9
+
+# Frontend
+streamlit==1.32.0
+
+# AI
+google-generativeai==0.5.4
+
+# Database
+sqlalchemy==2.0.29
+
+# SQL Parsing & Formatting
+sqlparse==0.5.0
+
+# Data handling
+pandas==2.2.1
+
+# Utilities
+python-dotenv==1.0.1
+requests==2.31.0

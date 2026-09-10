@@ -1,0 +1,24 @@
+# Environment Variables — NEVER commit this file to Git
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# SQLite databases (uploaded at runtime — not to be committed)
+uploaded_*.db
+uploaded_*.sqlite
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
