@@ -65,7 +65,7 @@ def explain_sql(sql_query: str):
         client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         prompt = f"Explain this SQL query in plain English, step-by-step:\n\n{sql_query}"
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=prompt
         )
         return {"explanation": response.text.strip()}
