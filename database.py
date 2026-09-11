@@ -1,6 +1,7 @@
 import os
 import logging
-from sqlalchemy import create_engine, text
+from typing import Optional
+from sqlalchemy import create_engine, text, Engine
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -16,7 +17,7 @@ SQLITE_DB_PATH = os.getenv("SQLITE_DB_PATH", "chinook.db")
 DATABASE_URL = f"sqlite:///{SQLITE_DB_PATH}"
 
 # Global engine variable
-engine = None
+engine: Optional[Engine] = None
 
 def set_database_file(db_path: str):
     global engine, DATABASE_URL
@@ -43,7 +44,7 @@ def list_databases():
 
 
 # Function to list tables
-def list_tables(database_name="main"):
+def list_tables(database_name: str = "main"):
     try:
         with engine.connect() as connection:
             result = connection.execute(
@@ -55,7 +56,7 @@ def list_tables(database_name="main"):
 
 
 # Function to list columns
-def list_columns(database_name, table_name):
+def list_columns(database_name: str, table_name: str):
     try:
         with engine.connect() as connection:
             result = connection.execute(
