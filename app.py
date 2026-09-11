@@ -2,7 +2,7 @@ from fastapi import FastAPI, Query, UploadFile, File
 import shutil
 import logging
 from database import list_databases, list_tables, list_columns
-from query_generator import generate_sql_query, execute_query
+from query_generator import generate_sql_query, execute_query, explain_sql_query
 
 # Initialize FastAPI
 app = FastAPI()
@@ -32,6 +32,8 @@ def generate_sql(natural_language_query: str):
     sql_query = generate_sql_query(natural_language_query)
 
     if sql_query:
+        if sql_query.startswith("Error generating SQL query:"):
+            return {"error": sql_query}
         return {"sql_query": sql_query}
     return {"error": "Failed to generate SQL"}
 
@@ -60,14 +62,9 @@ def upload_db(file: UploadFile = File(...)):
 @app.post("/explain_sql/")
 def explain_sql(sql_query: str):
     try:
-        from google import genai
-        import os
-        client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-        prompt = f"Explain this SQL query in plain English, step-by-step:\n\n{sql_query}"
-        response = client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=prompt
-        )
-        return {"explanation": response.text.strip()}
+        explanation = explain_sql_query(sql_query)
+        if explanation.startswith("Error explaining SQL query:"):
+            return {"error": explanation}
+        return {"explanation": explanation}
     except Exception as e:
         return {"error": str(e)}

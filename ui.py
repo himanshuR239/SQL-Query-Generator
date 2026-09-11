@@ -154,7 +154,11 @@ else:
 
         response = requests.post(f"{API_URL}/generate_sql/", params={"natural_language_query": natural_language_query})
         if response.status_code == 200:
-            st.session_state.generated_sql = response.json().get("sql_query", "")
+            data = response.json()
+            if "error" in data:
+                st.error(data["error"])
+            else:
+                st.session_state.generated_sql = data.get("sql_query", "")
         else:
             st.error("Error generating SQL query")
 
@@ -167,16 +171,24 @@ else:
             if st.button("🚀 Run Generated Query"):
                 run_response = requests.post(f"{API_URL}/execute_sql/", params={"sql_query": st.session_state.generated_sql})
                 if run_response.status_code == 200:
-                    st.session_state.query_results = run_response.json().get("results", [])
-                    add_to_history(st.session_state.generated_sql)
-                    st.rerun()
+                    run_data = run_response.json()
+                    if "error" in run_data:
+                        st.error(run_data["error"])
+                    else:
+                        st.session_state.query_results = run_data.get("results", [])
+                        add_to_history(st.session_state.generated_sql)
+                        st.rerun()
                 else:
                     st.error("Error executing query")
         with col2:
             if st.button("💡 Explain Query"):
                 explain_response = requests.post(f"{API_URL}/explain_sql/", params={"sql_query": st.session_state.generated_sql})
                 if explain_response.status_code == 200:
-                    st.session_state.explanation = explain_response.json().get("explanation", "")
+                    exp_data = explain_response.json()
+                    if "error" in exp_data:
+                        st.error(exp_data["error"])
+                    else:
+                        st.session_state.explanation = exp_data.get("explanation", "")
                 else:
                     st.error("Error explaining SQL query")
 
@@ -193,8 +205,13 @@ else:
     if st.button("🚀 Run Custom Query"):
         manual_response = requests.post(f"{API_URL}/execute_sql/", params={"sql_query": manual_sql_query})
         if manual_response.status_code == 200:
-            manual_results = manual_response.json().get("results", [])
-            add_to_history(manual_sql_query)
-            display_results(manual_results, title="Custom Query Results")
+            man_data = manual_response.json()
+            if "error" in man_data:
+                st.error(man_data["error"])
+            else:
+                manual_results = man_data.get("results", [])
+                add_to_history(manual_sql_query)
+                display_results(manual_results, title="Custom Query Results")
         else:
             st.error("Error executing custom query")
+

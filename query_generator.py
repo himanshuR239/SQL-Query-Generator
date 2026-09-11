@@ -19,12 +19,34 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 MAX_TABLES = 15
 MAX_COLUMNS_PER_TABLE = 10
 
+# Supported models with fallback resilience (gemini-3.6-flash is active and fast)
+MODEL_CANDIDATES = ["gemini-3.6-flash", "gemini-flash-latest", "gemini-3.5-flash"]
+
+def generate_content_with_fallback(prompt: str) -> str:
+    """Attempts generation with primary model, falling back to backup models on temporary errors."""
+    last_exception = None
+    for model_name in MODEL_CANDIDATES:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt
+            )
+            if response and response.text:
+                return response.text.strip()
+        except Exception as e:
+            last_exception = e
+            continue
+    if last_exception:
+        raise last_exception
+    raise RuntimeError("No response from Gemini API.")
+
+
 def clean_sql_output(response_text):
     """Extracts SQL query from AI response and formats it."""
-    clean_query = re.sub(r"```sql\n(.*?)\n```", r"\1", response_text, flags=re.DOTALL)
-    sql_match = re.search(r"SELECT .*?;", clean_query, re.DOTALL | re.IGNORECASE)
-    raw_sql = sql_match.group(0) if sql_match else clean_query.strip()
-    return sqlparse.format(raw_sql, reindent=True, keyword_case='upper')
+    clean_query = re.sub(r"```(?:sql)?\s*(.*?)\s*```", r"\1", response_text, flags=re.DOTALL)
+    clean_query = clean_query.strip()
+    return sqlparse.format(clean_query, reindent=True, keyword_case='upper')
+
 
 def get_limited_schema():
     """Fetches a reduced database schema to fit within token limits."""
@@ -61,11 +83,7 @@ SQL Query:
 """
 
     try:
-        response = client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=prompt
-        )
-        raw_sql_query = response.text.strip()
+        raw_sql_query = generate_content_with_fallback(prompt)
         return clean_sql_output(raw_sql_query)
 
     except Exception as e:
@@ -92,3 +110,12 @@ def execute_query(sql_query):
 
     except SQLAlchemyError as e:
         return {"error": str(e)}
+
+def explain_sql_query(sql_query: str) -> str:
+    """Generates a plain-English explanation of the SQL query."""
+    prompt = f"Explain this SQL query in plain English, step-by-step:\n\n{sql_query}"
+    try:
+        return generate_content_with_fallback(prompt)
+    except Exception as e:
+        return f"Error explaining SQL query: {e}"
+

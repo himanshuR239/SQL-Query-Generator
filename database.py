@@ -1,6 +1,5 @@
 import os
 import logging
-from typing import Optional
 from sqlalchemy import create_engine, text, Engine
 from dotenv import load_dotenv
 
@@ -16,10 +15,10 @@ SQLITE_DB_PATH = os.getenv("SQLITE_DB_PATH", "chinook.db")
 # Connection String
 DATABASE_URL = f"sqlite:///{SQLITE_DB_PATH}"
 
-# Global engine variable
-engine: Optional[Engine] = None
+# Global engine variable initialized with default database
+engine: Engine = create_engine(DATABASE_URL, echo=True)
 
-def set_database_file(db_path: str):
+def set_database_file(db_path: str) -> bool:
     global engine, DATABASE_URL
     DATABASE_URL = f"sqlite:///{db_path}"
     try:
@@ -31,8 +30,12 @@ def set_database_file(db_path: str):
         logging.error(f"Database connection failed: {str(e)}")
         return False
 
-# Initialize the default engine
-set_database_file(SQLITE_DB_PATH)
+def get_engine() -> Engine:
+    global engine
+    if engine is None:
+        set_database_file(SQLITE_DB_PATH)
+    return engine
+
 
 
 # Function to list databases (SQLite has one main database)
