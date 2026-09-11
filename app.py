@@ -60,10 +60,14 @@ def upload_db(file: UploadFile = File(...)):
 @app.post("/explain_sql/")
 def explain_sql(sql_query: str):
     try:
-        import google.generativeai as genai
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        from google import genai
+        import os
+        client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         prompt = f"Explain this SQL query in plain English, step-by-step:\n\n{sql_query}"
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt
+        )
         return {"explanation": response.text.strip()}
     except Exception as e:
         return {"error": str(e)}

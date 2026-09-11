@@ -1,5 +1,6 @@
 import os
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import sqlparse
 import re
 from dotenv import load_dotenv
@@ -11,8 +12,8 @@ from database import list_databases, list_tables, list_columns
 # Load environment variables
 load_dotenv()
 
-# Configure Gemini API Key
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+# Configure Gemini client
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Limits to avoid token limit issues
 MAX_TABLES = 15
@@ -61,9 +62,10 @@ SQL Query:
 """
 
     try:
-        # Use gemini-1.5-flash as the default model
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt
+        )
         raw_sql_query = response.text.strip()
         return clean_sql_output(raw_sql_query)
 
