@@ -40,7 +40,7 @@ def generate_sql(natural_language_query: str):
 def execute_sql(sql_query: str = Query(..., description="SQL query to execute")):
     """Execute the given SQL query and return results in JSON format."""
     result = execute_query(sql_query)
-    return result  # Now properly formatted for FastAPI JSON response
+    return result
 
 # API: Upload custom database
 @app.post("/upload_db/")
@@ -65,7 +65,7 @@ def explain_sql(sql_query: str):
         client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         prompt = f"Explain this SQL query in plain English, step-by-step:\n\n{sql_query}"
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             contents=prompt
         )
         return {"explanation": response.text.strip()}

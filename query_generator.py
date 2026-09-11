@@ -35,7 +35,6 @@ def get_limited_schema():
         tables = list_tables(db).get("tables", [])[:MAX_TABLES]
         for table in tables:
             schema[db][table] = list_columns(db, table).get("columns", [])[:MAX_COLUMNS_PER_TABLE]
-
     return schema
 
 def generate_sql_query(nl_query):
@@ -63,7 +62,7 @@ SQL Query:
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             contents=prompt
         )
         raw_sql_query = response.text.strip()
